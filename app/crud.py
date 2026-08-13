@@ -1,46 +1,41 @@
-import random
 from sqlalchemy.orm import Session
 from app.database import Customer, Account, Transaction
-from app.generator import generate_synthetic_customer_data, generate_iban, generate_credit_card
 
-def populate_database(db: Session, num_customers: int = 10):
-    """Belirtilen sayıda müşteri ve onlara bağlı hesap/işlem ağacını veritabanına yazar."""
-    print(f"Sisteme {num_customers} adet sentetik müşteri profili yükleniyor...")
-    
-    for _ in range(num_customers):
-        # 1. Müşteriyi Oluştur (Parent)
-        profile = generate_synthetic_customer_data()
-        db_customer = Customer(
-            tckn=profile["tckn"],
-            first_name=profile["first_name"],
-            last_name=profile["last_name"],
-            birth_date=profile["birth_date"],
-            risk_score=profile["risk_score"]
+def create_customer_with_relations(db: Session, profile_data: dict):
+    # 1. Müşteriyi Oluştur
+    new_customer = Customer(
+        tckn=profile_data["tckn"],
+        first_name=profile_data["first_name"],
+        last_name=profile_data["last_name"],
+        birth_date=profile_data["birth_date"],
+        risk_score=profile_data["risk_score"]
+    )
+    db.add(new_customer)
+    db.flush() 
+
+    # 2. Hesapları Oluştur
+    for acc in profile_data.get("accounts", []):
+        new_account = Account(
+            customer_id=new_customer.id,
+            iban=acc["iban"],
+            balance=acc["balance"],
+            status=acc["status"]
         )
-        db.add(db_customer)
-        # flush(): Veriyi veritabanına gönderir, ID'sini (Primary Key) alır ama işlemi henüz mühürlemez.
-        db.flush() 
+        db.add(new_account)
+        db.flush()
 
-        # 2. Müşteriye Rastgele Sayıda Hesap (1-3) Oluştur (Child)
-        for _ in range(random.randint(1, 3)):
-            db_account = Account(
-                customer_id=db_customer.id, # Üstte flush ile oluşan müşteri ID'sini buraya bağlıyoruz
-                iban=generate_iban(),
-                balance=round(random.uniform(100.0, 50000.0), 2),
-                status=random.choice(["ACTIVE", "ACTIVE", "CLOSED"]) # %66 ihtimalle aktif hesap
+        # 3. İşlemleri Oluştur
+        for trans in acc.get("transactions", []):
+            new_transaction = Transaction(
+                account_id=new_account.id,
+                card_number=trans["card_number"],
+                amount=trans["amount"]
             )
-            db.add(db_account)
-            db.flush()
+            db.add(new_transaction)
 
-            # 3. O Hesaba Rastgele Sayıda Kredi Kartı İşlemi (1-5) Oluştur (Grandchild)
-            for _ in range(random.randint(1, 5)):
-                db_transaction = Transaction(
-                    account_id=db_account.id,
-                    card_number=generate_credit_card("RANDOM"),
-                    amount=round(random.uniform(10.0, 5000.0), 2)
-                )
-                db.add(db_transaction)
-                
-    # Tüm döngü bittikten sonra verileri tek seferde kalıcı olarak kaydet (Performans için)
     db.commit()
-    print("Tüm veriler PostgreSQL ağacına başarıyla yazıldı!")
+    
+    # BU SATIRI EKLİYORUZ: İlişkili tabloları veritabanından tekrar belleğe çek!
+    db.refresh(new_customer)
+    
+    return new_customer

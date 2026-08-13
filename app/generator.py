@@ -63,7 +63,11 @@ def generate_iban() -> str:
     
     return f"TR{check_str}{bban}"
 
-def generate_synthetic_customer_data():
+import random
+from datetime import datetime, timedelta
+# Kendi yazdığın generate_tckn, generate_iban, generate_credit_card fonksiyonlarının import edildiğini varsayıyorum.
+
+def generate_customer_profile():
     """Tüm verileri birleştirerek tam bir müşteri profili ve ilişkili hesaplar oluşturur."""
     tckn = generate_tckn()
     cc_brand = random.choice(["VISA", "MASTERCARD", "TROY"])
@@ -73,14 +77,26 @@ def generate_synthetic_customer_data():
     first_names = ["Ahmet", "Ayşe", "Mehmet", "Fatma", "Can", "Zeynep", "Ali", "Elif"]
     last_names = ["Yılmaz", "Kaya", "Demir", "Çelik", "Şahin", "Yıldız", "Öztürk", "Aydın"]
     
+    # Sistemin (crud.py ve Pydantic şemalarının) beklediği İÇ İÇE (Nested) yapı:
     return {
         "tckn": tckn,
         "first_name": random.choice(first_names),
         "last_name": random.choice(last_names),
         "birth_date": datetime.today() - timedelta(days=random.randint(6570, 21900)), # 18-60 yaş arası
         "risk_score": random.randint(0, 100),
-        "account_iban": iban,
-        "card_number": cc_number,
-        "card_brand": cc_brand,
-        "balance": round(random.uniform(100.0, 50000.0), 2)
+        # İşte sihrin gerçekleştiği yer: "accounts" adında bir liste açıyoruz
+        "accounts": [
+            {
+                "iban": iban,
+                "balance": round(random.uniform(100.0, 50000.0), 2),
+                "status": "Aktif",
+                # O hesabın içine de "transactions" adında başka bir liste açıyoruz
+                "transactions": [
+                    {
+                        "card_number": cc_number,
+                        "amount": round(random.uniform(10.0, 1000.0), 2)
+                    }
+                ]
+            }
+        ]
     }
