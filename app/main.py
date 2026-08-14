@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Security, HTTPException, status
+from fastapi import FastAPI, Depends, Security, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -28,12 +28,16 @@ def root():
 # 1. UÇ NOKTA: İstendiği Kadar Taze Veri Üret ve Veritabanına Kaydet (POST)
 @app.post("/api/v1/generate", response_model=List[CustomerResponse], tags=["Sentetik Motor"])
 def generate_and_save_data(
-    count: int = 10, 
+    count: int = Query(10, ge=1, le=5000, description="Üretilecek profil sayısı"),
+    min_age: int = Query(18, ge=18, le=100, description="Minimum Yaş"),
+    max_age: int = Query(80, ge=18, le=100, description="Maksimum Yaş"),
+    min_risk_score: int = Query(0, ge=0, le=100, description="Minimum Risk Skoru"),
+    max_risk_score: int = Query(100, ge=0, le=100, description="Maksimum Risk Skoru"),
     db: Session = Depends(get_db), 
     api_key: str = Security(get_api_key)
 ):
     """
-    Belirtilen adet kadar tamamen yeni ve farklı sentetik müşteri profili üretir,
+    Belirtilen adet kadar ve belirlenen kıstaslara uygun tamamen yeni sentetik müşteri profili üretir,
     veritabanına kalıcı olarak kaydeder ve sonuç olarak anında dışarıya sunar.
     """
     if count <= 0 or count > 5000:
@@ -45,8 +49,13 @@ def generate_and_save_data(
     generated_profiles = []
     
     for _ in range(count):
-        # 1. Generator ile yeni profil üret
-        profile_data = generate_customer_profile()
+        # 1. Generator ile parametrelere (kıstaslara) uygun yeni profil üret
+        profile_data = generate_customer_profile(
+            min_age=min_age,
+            max_age=max_age,
+            min_risk_score=min_risk_score,
+            max_risk_score=max_risk_score
+        )
         
         # 2. CRUD fonksiyonu ile veritabanına kalıcı olarak kaydet
         db_customer = create_customer_with_relations(db, profile_data)

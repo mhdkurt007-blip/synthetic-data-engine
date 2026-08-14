@@ -67,8 +67,21 @@ import random
 from datetime import datetime, timedelta
 # Kendi yazdığın generate_tckn, generate_iban, generate_credit_card fonksiyonlarının import edildiğini varsayıyorum.
 
-def generate_customer_profile():
-    """Tüm verileri birleştirerek tam bir müşteri profili ve ilişkili hesaplar oluşturur."""
+def generate_customer_profile(
+    min_age: int = 18, 
+    max_age: int = 100, 
+    min_risk_score: int = 0, 
+    max_risk_score: int = 100
+):
+    """Belirli yaş ve risk skoru kıstaslarına göre müşteri profili üretir."""
+    
+    # 1. Yaşa göre doğum tarihi hesaplama
+    selected_age = random.randint(min_age, max_age)
+    birth_date = datetime.today() - timedelta(days=(selected_age * 365 + random.randint(0, 364)))
+    
+    # 2. Belirlenen aralıkta risk skoru üretme
+    risk_score = random.randint(min_risk_score, max_risk_score)
+    
     tckn = generate_tckn()
     cc_brand = random.choice(["VISA", "MASTERCARD", "TROY"])
     cc_number = generate_credit_card(cc_brand)
@@ -77,20 +90,17 @@ def generate_customer_profile():
     first_names = ["Ahmet", "Ayşe", "Mehmet", "Fatma", "Can", "Zeynep", "Ali", "Elif"]
     last_names = ["Yılmaz", "Kaya", "Demir", "Çelik", "Şahin", "Yıldız", "Öztürk", "Aydın"]
     
-    # Sistemin (crud.py ve Pydantic şemalarının) beklediği İÇ İÇE (Nested) yapı:
     return {
         "tckn": tckn,
         "first_name": random.choice(first_names),
         "last_name": random.choice(last_names),
-        "birth_date": datetime.today() - timedelta(days=random.randint(6570, 21900)), # 18-60 yaş arası
-        "risk_score": random.randint(0, 100),
-        # İşte sihrin gerçekleştiği yer: "accounts" adında bir liste açıyoruz
+        "birth_date": birth_date,
+        "risk_score": risk_score,
         "accounts": [
             {
                 "iban": iban,
                 "balance": round(random.uniform(100.0, 50000.0), 2),
                 "status": "Aktif",
-                # O hesabın içine de "transactions" adında başka bir liste açıyoruz
                 "transactions": [
                     {
                         "card_number": cc_number,
