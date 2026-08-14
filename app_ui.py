@@ -9,7 +9,7 @@ HEADERS = {"access_token": API_KEY}
 
 st.set_page_config(page_title="Sentetik Veri Motoru", page_icon="⚙️", layout="wide")
 
-st.title("⚙️ Sentetik Veri Motoru Kontrol Paneli")
+st.title("Sentetik Veri Motoru Kontrol Paneli")
 st.markdown("Bu panel, kurumsal testler için kıstaslara uygun anlık sentetik müşteri verisi üretmenizi sağlar.")
 
 if 'veri_var' not in st.session_state:
@@ -17,10 +17,10 @@ if 'veri_var' not in st.session_state:
     st.session_state.uretilen_veri = None
 
 # --- SOL KONTROL MENÜSÜ (FİLTRELER) ---
-st.sidebar.header("🛠️ Üretim Kıstasları")
+st.sidebar.header("Üretim Kıstasları")
 count = st.sidebar.number_input("Veri Adedi", min_value=1, max_value=5000, value=10)
 
-st.sidebar.subheader("🎯 Müşteri Profili Filtreleri")
+st.sidebar.subheader("Müşteri Profili Filtreleri")
 # Yaş Aralığı Seçimi (Min, Max)
 age_range = st.sidebar.slider("Yaş Aralığı", 18, 100, (18, 65))
 
@@ -28,7 +28,7 @@ age_range = st.sidebar.slider("Yaş Aralığı", 18, 100, (18, 65))
 risk_range = st.sidebar.slider("Risk Skoru Aralığı", 0, 100, (0, 100))
 
 # ÜRET BUTONU
-if st.sidebar.button("🚀 Kıstaslara Göre Veri Üret"):
+if st.sidebar.button("Kıstaslara Göre Veri Üret"):
     with st.spinner(f"Sistem belirlenen kıstaslara uygun {count} adet profil üretiyor..."):
         try:
             # Seçilen filtre değerlerini API'ye query param olarak gönderiyoruz
@@ -45,7 +45,7 @@ if st.sidebar.button("🚀 Kıstaslara Göre Veri Üret"):
             if response.status_code == 200:
                 st.session_state.uretilen_veri = response.json()
                 st.session_state.veri_var = True 
-                st.success(f"✅ Başarıyla {count} adet filtrelenmiş profil üretildi ve kaydedildi!")
+                st.success(f"Başarıyla {count} adet filtrelenmiş profil üretildi ve kaydedildi!")
             else:
                 st.error(f"Sunucu Hatası: {response.status_code} - {response.text}")
                 
