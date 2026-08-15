@@ -10,6 +10,10 @@ load_dotenv()
 # Veritabanı bağlantı adresi (Eğer .env okunamazsa varsayılan Docker adresini kullan)
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:mysecretpassword@localhost:5432/synthetic_db")
 
+# Render bazen "postgres://" verir ama SQLAlchemy "postgresql://" ister. Bunu düzeltmek için ufak bir kontrol:
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 # SQLAlchemy Motoru (Engine) ve Oturum (Session) ayarları
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
