@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 import json
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://synthetic-data-api-gz7t.onrender.com"
 API_KEY = "thalesoft-secure-2026-key"
 HEADERS = {"access_token": API_KEY}
 
