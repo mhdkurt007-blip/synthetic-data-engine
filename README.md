@@ -1,4 +1,3 @@
-Markdown
 # Sentetik Veri Motoru API
 
 Bu proje; kurumsal yazılım testleri, makine öğrenmesi modelleri ve veri analizi süreçleri için matematiksel olarak doğrulanmış, isteğe bağlı ve gerçeğe en yakın sentetik müşteri verilerini (Mock Data) üreten bir REST API servisidir.
@@ -37,12 +36,13 @@ headers = {
 
 response = requests.post(url, headers=headers)
 print(response.json())
+
 Örnek Terminal İsteği (cURL):
 
-Bash
 curl -X POST "[https://synthetic-data-api-gz7t.onrender.com/api/v1/generate?count=3&min_age=30&max_risk_score=50](https://synthetic-data-api-gz7t.onrender.com/api/v1/generate?count=3&min_age=30&max_risk_score=50)" \
 -H "access_token: thalesoft-secure-2026-key" \
 -H "accept: application/json"
+
 2. Mevcut Müşterileri Listeleme
 Veritabanında önceden üretilmiş ve kayıtlı olan müşterileri sayfalayarak (pagination) getirir.
 
@@ -58,7 +58,6 @@ limit (int): Getirilecek kayıt sayısı (Varsayılan: 50)
 
 Örnek Python İstegi:
 
-Python
 import requests
 
 url = "[https://synthetic-data-api-gz7t.onrender.com/api/v1/customers?skip=0&limit=10](https://synthetic-data-api-gz7t.onrender.com/api/v1/customers?skip=0&limit=10)"
@@ -68,3 +67,4 @@ headers = {
 
 response = requests.get(url, headers=headers)
 print(response.json())
+
