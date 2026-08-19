@@ -1,5 +1,8 @@
 import random
 from datetime import datetime, timedelta
+from faker import Faker
+
+fake = Faker('tr_TR')
 
 def generate_tckn() -> str:
     """Mod11 algoritmasına uygun geçerli ve rastgele TCKN üretir."""
@@ -86,14 +89,11 @@ def generate_customer_profile(
     cc_brand = random.choice(["VISA", "MASTERCARD", "TROY"])
     cc_number = generate_credit_card(cc_brand)
     iban = generate_iban()
-    
-    first_names = ["Ahmet", "Ayşe", "Mehmet", "Fatma", "Can", "Zeynep", "Ali", "Elif"]
-    last_names = ["Yılmaz", "Kaya", "Demir", "Çelik", "Şahin", "Yıldız", "Öztürk", "Aydın"]
-    
+        
     return {
         "tckn": tckn,
-        "first_name": random.choice(first_names),
-        "last_name": random.choice(last_names),
+        "first_name": fake.first_name(),
+        "last_name": fake.last_name(),
         "birth_date": birth_date,
         "risk_score": risk_score,
         "accounts": [
