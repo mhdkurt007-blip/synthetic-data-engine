@@ -4,7 +4,8 @@ from typing import List
 
 from app.database import SessionLocal, Customer
 from app.schemas import CustomerResponse
-from app.security import get_api_key
+# DİKKAT: Eski get_api_key yerine, yeni yazdığımız get_current_role fonksiyonunu çağırıyoruz
+from app.security import get_current_role 
 from app.generator import generate_customer_profile
 from app.crud import create_customer_with_relations
 
@@ -34,12 +35,20 @@ def generate_and_save_data(
     min_risk_score: int = Query(0, ge=0, le=100, description="Minimum Risk Skoru"),
     max_risk_score: int = Query(100, ge=0, le=100, description="Maksimum Risk Skoru"),
     db: Session = Depends(get_db), 
-    api_key: str = Security(get_api_key)
+    role: str = Depends(get_current_role) # YENİ: Kullanıcının rolünü alıyoruz
 ):
     """
     Belirtilen adet kadar ve belirlenen kıstaslara uygun tamamen yeni sentetik müşteri profili üretir,
     veritabanına kalıcı olarak kaydeder ve sonuç olarak anında dışarıya sunar.
     """
+    
+    # 👑 GÜVENLİK KONTROLÜ: Gelen rol 'admin' değilse işlemi durdur ve 403 hatası fırlat
+    if role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Veri üretme yetkiniz yok. Sadece Admin yetkisine sahip anahtarlar bu işlemi yapabilir."
+        )
+
     if count <= 0 or count > 5000:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -64,7 +73,8 @@ def generate_and_save_data(
     return generated_profiles
 
 # 2. UÇ NOKTA: Veritabanında Kayıtlı Olanları Listele (GET)
-@app.get("/api/v1/customers", response_model=List[CustomerResponse], dependencies=[Depends(get_api_key)], tags=["Müşteriler"])
+# YENİ: dependencies kısmında get_current_role kullanıyoruz. Hem admin hem analyst buradan geçebilir.
+@app.get("/api/v1/customers", response_model=List[CustomerResponse], dependencies=[Depends(get_current_role)], tags=["Müşteriler"])
 def get_customers(skip: int = 0, limit: int = 50, db: Session = Depends(get_db)):
     """Veritabanında önceden üretilmiş ve saklanan müşterileri sayfalama (pagination) ile getirir."""
     customers = db.query(Customer).offset(skip).limit(limit).all()
